@@ -111,3 +111,18 @@ class WaterlinkClient:
         resp = self.session.get(url, headers=headers)
         resp.raise_for_status()
         return resp.json()
+
+    def get_daily_measurements(self, from_date):
+        """Fetch the daily usage measurements starting at from_date (a date object)."""
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "User-Agent": "Mozilla/5.0"
+        }
+        url = "https://portaaldigitalemeters.water-link.be/api/measurements/day"
+        params = {
+            "from": from_date.isoformat(),
+            "meterNumber": self.meter_id,
+        }
+        resp = self.session.get(url, headers=headers, params=params)
+        resp.raise_for_status()
+        return resp.json()
