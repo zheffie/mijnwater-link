@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import timedelta
 
@@ -14,6 +15,7 @@ from homeassistant.helpers.update_coordinator import (
 
 from .waterlink_api import WaterlinkClient
 from .const import DOMAIN
+from .statistics import async_import_daily_statistics
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,6 +52,26 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     )
 
     await coordinator.async_config_entry_first_refresh()
+
+    # Import per-day usage as long-term statistics on the date it actually
+    # happened, instead of the (possibly days-late) date the reading arrives.
+    import_lock = asyncio.Lock()
+
+    async def _async_import_statistics():
+        if import_lock.locked():
+            return
+        async with import_lock:
+            try:
+                await async_import_daily_statistics(hass, client, meter_id)
+            except Exception as err:
+                _LOGGER.warning("Importing water-link daily statistics failed: %s", err)
+
+    def _schedule_statistics_import():
+        if coordinator.last_update_success:
+            hass.async_create_task(_async_import_statistics())
+
+    config_entry.async_on_unload(coordinator.async_add_listener(_schedule_statistics_import))
+    _schedule_statistics_import()
 
     entity = WaterlinkSensor(
         coordinator,

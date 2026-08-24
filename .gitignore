@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+.env
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local credentials & live-test output — never commit these
+tests/credentials.json
+tests/live_*.json
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

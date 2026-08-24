@@ -23,6 +23,17 @@ This integration will fetch the latest available datapoint as it is present in t
 
 <img width="423"  alt="image" src="https://github.com/user-attachments/assets/12dd6742-10ff-4019-830a-86bae2829834" />
 
+## Daily consumption statistics (correct dates)
+
+Because the portal value can lag behind by a couple of days, the sensor state alone could put several days of accumulated consumption on the wrong date. To fix this, the integration also fetches the **actual usage per day** from the portal and imports it into Home Assistant's long-term statistics on the date the water was really consumed (up to a year of history is backfilled on first run).
+
+This data is available as the external statistic `mijn_waterlink:meter_<meter id>_consumption`. You can:
+
+- Add it as a **water source in the Energy dashboard** (pick it from the statistics list), or
+- Chart it with a *Statistics graph* card.
+
+Note: external statistics are not entities, so you won't find it under Devices & Services — look for it in the statistics picker of the Energy dashboard or the Statistics graph card.
+
 
 ## Installation
 
@@ -57,3 +68,20 @@ Copy the `custom_components/mijn-waterlink` folder to your `configuration` path 
 |Option| Description  |
 |--|--|
 | update_interval | The polling interval to fetch the reading from the Portal. Default is set to 2700s (2 hours). Note that the digital water meter only sends an update once a day |
+
+## Development & testing
+
+Install the test dependencies and run the unit tests (no credentials needed):
+
+```bash
+pip install -r requirements_test.txt
+pytest
+```
+
+There is also a live test suite that exercises the real 'Mijn Water-link' portal (authentication, meter data, and the daily measurements endpoint). Provide credentials either as environment variables (`WATERLINK_USERNAME`, `WATERLINK_PASSWORD`, `WATERLINK_CLIENT_ID`, `WATERLINK_METER_ID`) or by copying `tests/credentials.example.json` to `tests/credentials.json` (git-ignored) and filling it in. Then run:
+
+```bash
+pytest -m live -s
+```
+
+The live tests save the raw API responses to git-ignored `tests/live_*_sample.json` files, which is useful for inspecting the undocumented response schema.
